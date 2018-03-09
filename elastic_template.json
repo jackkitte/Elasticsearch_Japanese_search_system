@@ -1,0 +1,248 @@
+{
+    "order": 0,
+    "index_patterns": ["opc_known_db"],
+    "settings": {
+        "number_of_shards": "1",
+        "number_of_replicas": "0",
+        "analysis": {
+            "filter": {
+                "synonym": {
+                    "type": "synonym",
+                    "synonyms_path": "/etc/elasticsearch/dict/synonym.txt"
+                },
+                "stopword": {
+                    "type": "stop",
+                    "stopwords_path": "/etc/elasticsearch/dict/stopword.txt"
+                },
+                "romaji": {
+                    "type": "kuromoji_neologd_readingform",
+                    "use_romaji": true
+                },
+                "katakana_stemmer": {
+                    "type": "kuromoji_neologd_stemmer"
+                },
+                "standard_filter": {
+                    "type": "kuromoji_neologd_part_of_speech",
+                    "stoptags": [
+                        "接続詞",
+                        "助詞",
+                        "助詞-格助詞",
+                        "助詞-格助詞-一般",
+                        "助詞-格助詞-引用", 
+                        "助詞-格助詞-連語", 
+                        "助詞-接続助詞",
+                        "助詞-係助詞",
+                        "助詞-副助詞",
+                        "助詞-間投助詞",
+                        "助詞-並立助詞",
+                        "助詞-終助詞",
+                        "助詞-副助詞",
+                        "助詞-連体化",
+                        "助詞-副詞化",
+                        "助詞-特殊",
+                        "助動詞",
+                        "名詞-数"
+                    ]
+                },
+                "aggregatable_filter": {
+                    "type": "kuromoji_neologd_part_of_speech",
+                    "stoptags": [
+                        "接続詞",
+                        "助詞",
+                        "助詞-格助詞",
+                        "助詞-格助詞-一般",
+                        "助詞-格助詞-引用", 
+                        "助詞-格助詞-連語", 
+                        "助詞-接続助詞",
+                        "助詞-係助詞",
+                        "助詞-副助詞",
+                        "助詞-間投助詞",
+                        "助詞-並立助詞",
+                        "助詞-終助詞",
+                        "助詞-副助詞",
+                        "助詞-連体化",
+                        "助詞-副詞化",
+                        "助詞-特殊",
+                        "助動詞",
+                        "名詞-数",
+                        "動詞",
+                        "動詞-自立",
+                        "動詞-非自立",
+                        "動詞-接尾"
+                    ]
+                }
+            },
+            "normalizer": {
+                "default_normalizer": {
+                    "type": "custom",
+                    "char_filter": [
+                        "icu_normalizer"
+                    ],
+                    "filter": [
+                        "lowercase",
+                        "cjk_width"
+                    ]
+                }
+            },
+            "tokenizer": {
+                "default_ja_tokenizer": {
+                    "type": "kuromoji_neologd_tokenizer",
+                    "mode": "search",
+                    "user_dictionary": "/etc/elasticsearch/dict/userdict_ja.txt"
+                },
+                "ngram_ja_tokenizer": {
+                    "type": "nGram",
+                    "min_gram": "2",
+                    "max_gram": "3",
+                    "token_chars": ["letter", "digit"]
+                }
+            },
+            "analyzer": {
+                "ja": {
+                    "type": "custom",
+                    "tokenizer": "default_ja_tokenizer",
+                    "char_filter": [
+                        "html_strip",
+                        "kuromoji_neologd_iteration_mark",
+                        "icu_normalizer"
+                    ],
+                    "filter": [
+                        "standard_filter",
+                        "lowercase",
+                        "cjk_width",
+                        "katakana_stemmer",
+                        "stopword"
+                    ]
+                },
+                "ja_aggregatable": {
+                    "type": "custom",
+                    "tokenizer": "default_ja_tokenizer",
+                    "char_filter": [
+                        "html_strip",
+                        "kuromoji_neologd_iteration_mark",
+                        "icu_normalizer"
+                    ],
+                    "filter": [
+                        "aggregatable_filter",
+                        "lowercase",
+                        "cjk_width",
+                        "katakana_stemmer",
+                        "stopword"
+                    ]
+                },
+                "ja_synonym": {
+                    "type": "custom",
+                    "tokenizer": "default_ja_tokenizer",
+                    "char_filter": [
+                        "html_strip",
+                        "kuromoji_neologd_iteration_mark"
+                    ],
+                    "filter": [
+                        "lowercase",
+                        "cjk_width",
+                        "katakana_stemmer",
+                        "kuromoji_neologd_part_of_speech",
+                        "synonym",
+                        "stopword"
+                    ]
+                },
+                "yomi_analyzer": {
+                    "type": "custom",
+                    "tokenizer": "default_ja_tokenizer",
+                    "char_filter": [
+                        "html_strip",
+                        "kuromoji_neologd_iteration_mark",
+                        "icu_normalizer"
+                    ],
+                    "filter": [
+                        "standard_filter",
+                        "lowercase",
+                        "cjk_width",
+                        "katakana_stemmer",
+                        "stopword",
+                        "romaji"
+                    ]
+                },
+                "facet_analyzer": {
+                    "type": "custom",
+                    "tokenizer": "keyword",
+                    "char_filter": ["html_strip"],
+                    "filter": [
+                        "lowercase",
+                        "cjk_width"
+                    ]
+                },
+                "ja_ngram": {
+                    "type": "custom",
+                    "tokenizer": "ngram_ja_tokenizer",
+                    "char_filter": ["html_strip"],
+                    "filter": [
+                        "lowercase",
+                        "cjk_width"
+                    ]
+                }
+            }
+        }
+    },
+    "mappings": {
+        "_doc": {
+            "_source": {
+                "enabled": true
+            },
+            "dynamic_templates": [
+                {
+                    "id_string": {
+                        "match_mapping_type": "string",
+                        "match_pattern": "regex",
+                        "match": ".*id.*",
+                        "mapping": {
+                            "type": "keyword",
+                            "normalizer": "default_normalizer"
+                        }
+                    }
+                },
+                {
+                    "default_string": {
+                        "match_mapping_type": "string",
+                        "match_pattern": "regex",
+                        "match": ".*name.*",
+                        "mapping": {
+                            "type": "text",
+                            "analyzer": "ja",
+                            "search_analyzer": "ja_synonym",
+                            "fields": {
+                                "raw": {
+                                    "type": "keyword",
+                                    "normalizer": "default_normalizer"
+                                },
+                                "aggregatable": {
+                                    "type": "text",
+                                    "analyzer": "ja_aggregatable",
+                                    "fielddata": true
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "long_string": {
+                        "match_mapping_type": "string",
+                        "match": "*",
+                        "mapping": {
+                            "type": "text",
+                            "analyzer": "ja",
+                            "search_analyzer": "ja_synonym",
+                            "fields": {
+                                "aggregatable": {
+                                    "type": "text",
+                                    "analyzer": "ja_aggregatable",
+                                    "fielddata": true
+                                }
+                            }
+                        }
+                    }
+                }
+            ]
+        }
+    }
+}
